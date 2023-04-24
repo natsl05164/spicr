@@ -1,0 +1,10 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+.spicr .item{
+    float :none;
+    display:block;
+    margin-right: 0;
+}

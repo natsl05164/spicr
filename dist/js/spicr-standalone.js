@@ -1,6 +1,6 @@
 /*!
 * Spicr Standalone v1.0.10 (http://thednp.github.io/spicr)
-* Copyright 2017-2021 © thednp
+* Copyright 2017-2023 © thednp
 * Licensed under MIT (https://github.com/thednp/spicr/blob/master/LICENSE)
 */
 (function (global, factory) {
@@ -232,56 +232,31 @@
       t -= 2; return 0.5 * (t * t * ((s + 1) * t + s) + 2);
     },
     /** @type {KUTE.easingFunction} */
-    easingElasticIn: function (t0) {
-      var s;
-      var k1 = 0.1;
-      var k2 = 0.4;
-      var t = t0;
+    easingElasticIn: function (t) {
       if (t === 0) { return 0; }
       if (t === 1) { return 1; }
-      if (!k1 || k1 < 1) {
-        k1 = 1; s = k2 / 4;
-      } else {
-        s = ((k2 * Math.asin(1 / k1)) / Math.PI) * 2;
-      }
-      t -= 1;
-      return -(k1 * (Math.pow( 2, (10 * t) )) * Math.sin(((t - s) * Math.PI * 2) / k2));
+
+      return -(Math.pow( 2, (10 * (t - 1)) )) * Math.sin((t - 1.1) * 5 * Math.PI);
     },
     /** @type {KUTE.easingFunction} */
     easingElasticOut: function (t) {
-      var s;
-      var k1 = 0.1;
-      var k2 = 0.4;
       if (t === 0) { return 0; }
       if (t === 1) { return 1; }
-      if (!k1 || k1 < 1) {
-        k1 = 1;
-        s = k2 / 4;
-      } else {
-        s = ((k2 * Math.asin(1 / k1)) / Math.PI) * 2;
-      }
-      return k1 * (Math.pow( 2, (-10 * t) )) * Math.sin(((t - s) * Math.PI * 2) / k2) + 1;
+
+      return (Math.pow( 2, (-10 * t) )) * Math.sin((t - 0.1) * 5 * Math.PI) + 1;
     },
     /** @type {KUTE.easingFunction} */
     easingElasticInOut: function (t0) {
-      var t = t0;
-      var s;
-      var k1 = 0.1;
-      var k2 = 0.4;
-      if (t === 0) { return 0; }
-      if (t === 1) { return 1; }
-      if (!k1 || k1 < 1) {
-        k1 = 1; s = k2 / 4;
-      } else {
-        s = k2 * (Math.asin(1 / k1) / Math.PI) * 2;
-      }
-      t *= 2;
+      if (t0 === 0) { return 0; }
+      if (t0 === 1) { return 1; }
+
+      var t = t0 * 2;
+
       if (t < 1) {
-        return -0.5 * (k1 * (Math.pow( 2, (10 * (t - 1)) ))
-        * Math.sin(((t - 1 - s) * Math.PI * 2) / k2));
+        return -0.5 * (Math.pow( 2, (10 * (t - 1)) )) * Math.sin((t - 1.1) * 5 * Math.PI);
       }
-      t -= 1;
-      return k1 * (Math.pow( 2, (-10 * t) )) * Math.sin(((t - s) * Math.PI * 2) / k2) * 0.5 + 1;
+
+      return 0.5 * (Math.pow( 2, (-10 * (t - 1)) )) * Math.sin((t - 1.1) * 5 * Math.PI) + 1;
     },
     /** @type {KUTE.easingFunction} */
     easingBounceIn: function (t) { return 1 - Easing.easingBounceOut(1 - t); },
@@ -973,25 +948,53 @@
   };
 
   /**
-   * Utility to check if target is typeof Element
+   * Checks if an element is an `HTMLElement`.
+   *
+   * @param {any} element the target object
+   * @returns {boolean} the query result
+   */
+  var isHTMLElement = function (element) { return typeof element === 'object' && element instanceof HTMLElement; };
+
+  /**
+   * Utility to check if target is typeof `HTMLElement`
    * or find one that matches a selector.
    *
-   * @param {Element | string} selector the input selector or target element
-   * @param {Element | null} parent optional Element to look into
-   * @return {Element | null} the Element or result of the querySelector
+   * @param {HTMLElement | string} selector the input selector or target element
+   * @param {(ParentNode | HTMLElement)=} parent optional `HTMLElement` to look into
+   * @return {HTMLElement?} the `HTMLElement` or `querySelector` result
    */
-  function queryElement(selector, parent) {
-    var lookUp = parent && parent instanceof Element ? parent : document;
-    return selector instanceof Element ? selector : lookUp.querySelector(selector);
+  function querySelector(selector, parent) {
+    var lookUp = parent && isHTMLElement(parent) ? parent : document;
+    return typeof selector === 'object' ? selector : lookUp.querySelector(selector);
   }
 
-  var mobileBrands = /iPhone|iPad|iPod|Android/i;
-  var userAgentStr = 'userAgentData';
+  /**
+   * Utility to check if target is typeof `HTMLElement`
+   * or find one that matches a selector.
+   *
+   * @deprecated
+   *
+   * @param {HTMLElement | string} selector the input selector or target element
+   * @param {(ParentNode | HTMLElement)=} parent optional `HTMLElement` to look into
+   * @return {HTMLElement?} the Element or `querySelector` result
+   */
+  function queryElement(selector, parent) {
+    return querySelector(selector, parent);
+  }
 
+  /**
+   * A global namespace for `userAgentData` event.
+   * @type {string}
+   */
+  var userAgentData = 'userAgentData';
+
+  var mobileBrands = /iPhone|iPad|iPod|Android/i;
   var isMobileCheck = false;
 
-  if (navigator[userAgentStr]) {
-    isMobileCheck = navigator[userAgentStr].brands.some(function (x) { return mobileBrands.test(x.brand); });
+  // @ts-ignore
+  if (navigator[userAgentData]) {
+    // @ts-ignore
+    isMobileCheck = navigator[userAgentData].brands.some(function (x) { return mobileBrands.test(x.brand); });
   } else {
     isMobileCheck = mobileBrands.test(navigator.userAgent);
   }
@@ -1015,16 +1018,59 @@
   var mouseHoverEvents = ('onmouseleave' in document) ? ['mouseenter', 'mouseleave'] : ['mouseover', 'mouseout'];
 
   /**
-   * A global namespace for 'addEventListener' string.
+   * A global namespace for `DOMContentLoaded` event.
    * @type {string}
    */
-  var addEventListener = 'addEventListener';
+  var DOMContentLoadedEvent = 'DOMContentLoaded';
 
   /**
-   * A global namespace for 'removeEventListener' string.
-   * @type {string}
+   * Add eventListener to an `HTMLElement` | `Document` target.
+   *
+   * @param {HTMLElement | Document} element event.target
+   * @param {string} eventName event.type
+   * @param {EventListener} handler callback
+   * @param {EventListenerOptions | boolean | undefined} options other event options
    */
-  var removeEventListener = 'removeEventListener';
+  function on(element, eventName, handler, options) {
+    var ops = options || false;
+    element.addEventListener(eventName, handler, ops);
+  }
+
+  /**
+   * Remove eventListener from an `HTMLElement` | `Document` target.
+   *
+   * @param {HTMLElement | Document} element event.target
+   * @param {string} eventName event.type
+   * @param {EventListener} handler callback
+   * @param {EventListenerOptions | boolean | undefined} options other event options
+   */
+  function off(element, eventName, handler, options) {
+    var ops = options || false;
+    element.removeEventListener(eventName, handler, ops);
+  }
+
+  /**
+   * Add an `eventListener` to an `HTMLElement` | `Document` target
+   * and remove it once callback is called.
+   *
+   * @param {HTMLElement | Document} element event.target
+   * @param {string} eventName event.type
+   * @param {EventListener} handler callback
+   * @param {EventListenerOptions | boolean | undefined} options other event options
+   */
+  function one(element, eventName, handler, options) {
+  /**
+   * Wrap the handler for easy on -> off
+   * @param {Event} e the Event object
+   */
+    function handlerWrapper(e) {
+      if (e.target === element) {
+        handler.apply(element, [e]);
+        off(element, eventName, handlerWrapper, options);
+      }
+    }
+    on(element, eventName, handlerWrapper, options);
+  }
 
   /**
    * A global namespace for passive events support.
@@ -1039,9 +1085,7 @@
           return result;
         },
       });
-      document[addEventListener]('DOMContentLoaded', function wrap() {
-        document[removeEventListener]('DOMContentLoaded', wrap, opts);
-      }, opts);
+      one(document, DOMContentLoadedEvent, function () {}, opts);
     } catch (e) {
       throw Error('Passive events are not supported');
     }
@@ -1059,7 +1103,7 @@
   /**
    * The raw value or a given component option.
    *
-   * @typedef {string | Element | Function | number | boolean | null} niceValue
+   * @typedef {string | HTMLElement | Function | number | boolean | null} niceValue
    */
 
   /**
@@ -1085,49 +1129,54 @@
       return null;
     }
 
-    // string / function / Element / object
+    // string / function / HTMLElement / object
     return value;
   }
 
   /**
+   * Shortcut for `Object.keys()` static method.
+   * @param  {Record<string, any>} obj a target object
+   * @returns {string[]}
+   */
+  var ObjectKeys = function (obj) { return Object.keys(obj); };
+
+  /**
    * Utility to normalize component options
    *
-   * @param {Element} element target
-   * @param {object} defaultOps component default options
-   * @param {object} inputOps component instance options
-   * @param {string} ns component namespace
-   * @return {object} normalized component options object
+   * @param {HTMLElement} element target
+   * @param {Record<string, any>} defaultOps component default options
+   * @param {Record<string, any>} inputOps component instance options
+   * @param {string=} ns component namespace
+   * @return {Record<string, any>} normalized component options object
    */
   function normalizeOptions(element, defaultOps, inputOps, ns) {
-    // @ts-ignore
     var data = Object.assign({}, element.dataset);
+    /** @type {Record<string, any>} */
     var normalOps = {};
+    /** @type {Record<string, any>} */
     var dataOps = {};
 
-    Object.keys(data)
-      .forEach(function (k) {
-        var key = k.includes(ns)
-          ? k.replace(ns, '').replace(/[A-Z]/, function (match) { return match.toLowerCase(); })
-          : k;
+    ObjectKeys(data).forEach(function (k) {
+      var key = ns && k.includes(ns)
+        ? k.replace(ns, '').replace(/[A-Z]/, function (match) { return match.toLowerCase(); })
+        : k;
 
-        dataOps[key] = normalizeValue(data[k]);
-      });
+      dataOps[key] = normalizeValue(data[k]);
+    });
 
-    Object.keys(inputOps)
-      .forEach(function (k) {
-        inputOps[k] = normalizeValue(inputOps[k]);
-      });
+    ObjectKeys(inputOps).forEach(function (k) {
+      inputOps[k] = normalizeValue(inputOps[k]);
+    });
 
-    Object.keys(defaultOps)
-      .forEach(function (k) {
-        if (k in inputOps) {
-          normalOps[k] = inputOps[k];
-        } else if (k in dataOps) {
-          normalOps[k] = dataOps[k];
-        } else {
-          normalOps[k] = defaultOps[k];
-        }
-      });
+    ObjectKeys(defaultOps).forEach(function (k) {
+      if (k in inputOps) {
+        normalOps[k] = inputOps[k];
+      } else if (k in dataOps) {
+        normalOps[k] = dataOps[k];
+      } else {
+        normalOps[k] = defaultOps[k];
+      }
+    });
 
     return normalOps;
   }
@@ -1158,6 +1207,10 @@
       var pValue = prop[1];
       var offsetType = /y/i.test(pName) || /v/i.test(pValue) ? 'offsetHeight' : 'offsetWidth';
 
+      if (/x/i.test(pName)) {
+        console.log('processLayerData', pName, elem.offsetWidth, offsetType, (parseFloat(pValue) * elem[offsetType]) / 100, pValue);
+      }
+
       if (isOrigin && /%/.test(pValue) && !/z/i.test(pName)) {
         obj[pName] = pValue;
       } else {
@@ -1177,6 +1230,13 @@
     interval: 5000,
     touch: true,
     pause: 'hover',
+    slides: {
+      itemsPerPage: 3,
+      totalRealItems: 5,
+      activeAlign: 'center',
+      gap: 8,
+      axis: 'x',
+    },
   };
 
   /**
@@ -1297,6 +1357,9 @@
     // options
     var pauseOption = options.pause; // false / hover
     var touchOption = options.touch; // boolean
+    var ref = options.slides;
+    var gap = ref.gap;
+    var axis = ref.axis;
 
     var intervalOption = options.interval; // integer / false
 
@@ -1316,12 +1379,19 @@
     var timer = null;
     var slideDirection = null;
     var index = 0;
+
     var isAnimating = 0;
 
     // spicr type
-    var isSlider = element.classList.contains('spicr-slider');
+    var isSlides = element.classList.contains('spicr-slides');
+    var isSlider = !isSlides && element.classList.contains('spicr-slider');
     var isCarousel = element.classList.contains('spicr-carousel');
 
+    if (isSlides) {
+      index = (options.slides.itemsPerPage + getTtlItemsFrActive()) + 1 - 1;
+      // itemsPerPage = 3, if center getTtlItemsFrActive = 1 , so 4 items from active. it shud be the 5th item that is Active hence + 1. but index start from 0 so - 1
+      console.log('init index', index);
+    }
     // event handlers
     function pauseHandler() {
       if (!element.classList.contains('paused')) {
@@ -1449,13 +1519,78 @@
         if (isCarousel) {
           element.style.height = '';
         }
-        spicrConnect.reset(element);
+        if (isSlides) {
+          console.log('options.slides', options.slides);
+          var ttlItemsFrActive = getTtlItemsFrActive();
+          // if (options.slides.activeAlign === 'center') {
+          //   ttlItemsFrActive = (options.slides.itemsPerPage - 1) / 2; // 3 -1 /2 = 1
+          // } else if (options.slides.activeAlign === 'right') {
+          //   ttlItemsFrActive = options.slides.itemsPerPage;
+          // }
+
+          console.log('nextItem (active 1)', nextItem);
+          console.log('ttlItemsFrActive', ttlItemsFrActive);
+          var indexOfFirstItemOnPg = nextItem - ttlItemsFrActive;
+          // if nextItem is  3, 3- 1 , means index 2 is first Item on the page
+          console.log('indexOfFirstItemOnPg', indexOfFirstItemOnPg);
+          var maxIdxLClones = options.slides.itemsPerPage - 1;
+          // start from 0 ,  3 - 1 =2 , the 3rd item , index is alwys - 1
+          console.log('maxIdxLClones', maxIdxLClones);
+          var minIdxRClones = (options.slides.itemsPerPage + options.slides.totalRealItems + 1) - 1;
+          // start from 0 ,  (3 + 5 + 1 ) the 9th item ,  index is alwys - 1
+          console.log('minIdxRClones', minIdxRClones);
+          if (maxIdxLClones >= indexOfFirstItemOnPg || indexOfFirstItemOnPg >= minIdxRClones) {
+            // so the First Item on the Pg is a cloned item, move it to a real Item
+            console.log('chkIsInCloneRange', indexOfFirstItemOnPg, maxIdxLClones >= indexOfFirstItemOnPg >= minIdxRClones);
+            var isOnRight = indexOfFirstItemOnPg >= minIdxRClones;
+            console.log('isOnRight', isOnRight);
+            var moveByTtlItems = options.slides.totalRealItems;
+            moveByTtlItems = isOnRight ? -moveByTtlItems : moveByTtlItems;
+
+            console.log('moveByTtlItems', moveByTtlItems);
+            var realNextItem = nextItem + moveByTtlItems;
+            index = realNextItem;
+            console.log('realNextItem', realNextItem);
+            var realFirstItemPg = indexOfFirstItemOnPg + moveByTtlItems;
+            console.log('realFirstItemPg', realFirstItemPg);
+            var itemLength = 0;
+            if (axis === 'x') { // slides shud have the same height / width
+              itemLength = slides[0].offsetWidth;
+            } else {
+              itemLength = slides[0].offsetHeight;
+            }
+
+            console.log('itemLength', itemLength);
+
+            var pos = ((realFirstItemPg * itemLength) + (gap * realFirstItemPg)) * -1;
+
+            console.log('pos', gap, pos);
+            Array.from(slides).forEach(function (slide, index) {
+              slide.style.transform = "translate" + (axis.toUpperCase()) + "(" + pos + "px)";
+            });
+            slides[nextItem].classList.remove('active');
+            slides[realNextItem].classList.add('active');
+          }
+        } else {
+          spicrConnect.reset(element);
+        }
+
         isAnimating = false;
         tws = [];
         if (intervalOption && !element.classList.contains('paused')) {
           self.cycle();
         }
       }, 0);
+    }
+
+    function getTtlItemsFrActive() {
+      var ttlItemsFrActive = 0;
+      if (options.slides.activeAlign === 'center') {
+        ttlItemsFrActive = (options.slides.itemsPerPage - 1) / 2; // 3 -1 /2 = 1
+      } else if (options.slides.activeAlign === 'right') {
+        ttlItemsFrActive = options.slides.itemsPerPage;
+      }
+      return ttlItemsFrActive;
     }
 
     // public methods
@@ -1466,6 +1601,7 @@
       var activeIndex = element.getElementsByClassName('item active')[0];
       return Array.from(slides).indexOf(activeIndex);
     };
+
     /**
      * Cycles through items automatically in a pre-configured time interval.
      */
@@ -1481,9 +1617,10 @@
      * @param {number} nextIdx the index of the next slide.
      */
     this.slideTo = function (nextIdx) {
+      console.log('slideTonextIdx', nextIdx);
       var nextActive = nextIdx;
       var activeIndex = this$1.getActiveIndex();
-
+      console.log(activeIndex, nextActive, isAnimating);
       if (activeIndex === nextActive || isAnimating) { return; }
 
       clearInterval(timer);
@@ -1530,13 +1667,41 @@
           }
 
           if (pages) { setActivePage(pages[nextActive]); }
+
         // do carousel work
+        } else if (isSlides) {
+          beforeTween(activeIndex, nextActive); // always before creating tween objects
+
+          tws = spicrConnect.slides(element, slides, activeIndex, nextActive, slideDirection, axis, gap);
+
+          // temp
+          // const animateActiveLayers = activeIndex !== -1
+          //   ? animateSliderLayers(slides, activeIndex, nextActive)
+          //   : animateSliderLayers(slides, activeIndex);
+
+          // const animateNextLayers = activeIndex !== -1 && animateSliderLayers(slides, nextActive);
+
+          // if (activeIndex === -1) {
+          //   if (animateActiveLayers.length) tws = tws.concat(animateActiveLayers);
+          // } else {
+          //   if (animateActiveLayers.length) tws = tws.concat(animateActiveLayers);
+          //   if (animateNextLayers.length) tws = tws.concat(animateNextLayers);
+          // }
+
+          if (tws.length) {
+            tws.reduce(function (x, y) { return (x._duration + x._delay > y._duration + y._delay ? x : y); })
+              ._onComplete = function () { return afterTween(activeIndex, nextActive); };
+
+            tws.forEach(function (x) { return x.start(); });
+          } else {
+            afterTween(activeIndex, nextActive);
+          }
         } else if (isCarousel) {
           beforeTween(activeIndex, nextActive); // always before creating tween objects
 
-          var delay = defaultSpicrOptions.delay;
-          var duration = defaultSpicrOptions.duration;
-          var easing = defaultSpicrOptions.easing;
+          var delay$1 = defaultSpicrOptions.delay;
+          var duration$1 = defaultSpicrOptions.duration;
+          var easing$1 = defaultSpicrOptions.easing;
           var currentSlide = slides[activeIndex];
           var nextSlide = slides[nextActive];
 
@@ -1548,10 +1713,10 @@
                 { height: parseFloat(getComputedStyle(currentSlide).height) },
                 { height: parseFloat(getComputedStyle(nextSlide).height) },
                 {
-                  easing: easing,
-                  duration: duration,
+                  easing: easing$1,
+                  duration: duration$1,
                   // delay: Math.max.apply(Math, tws.map((x) => x._delay + x._duration)) || delay,
-                  delay: Math.max.apply(Math, tws.map(function (x) { return x._delay + x._duration; })) || delay,
+                  delay: Math.max.apply(Math, tws.map(function (x) { return x._delay + x._duration; })) || delay$1,
                 }));
             }
             tws[tws.length - 1]._onComplete = function () { return afterTween(activeIndex, nextActive); };
@@ -1614,6 +1779,135 @@
   };
 
   Object.assign(Spicr, K);
+
+  /**
+   * Returns an object with attribute values specific to Spicr layer.
+   * @param {Element} elem target
+   * @returns {Object.<string, (number | string)>}
+   */
+  function getAttributes$1(elem) {
+    var obj = {};
+    var attr = ['translate', 'rotate', 'scale',
+      'transform-origin', 'opacity', 'duration', 'delay', 'easing', 'axis'];
+
+    attr.forEach(function (a) {
+      var prop = a === 'transform-origin' ? 'origin' : a;
+      obj[prop] = elem.getAttribute(("data-" + a));
+    });
+    return obj;
+  }
+
+  /**
+   * Returns layer animation settings for DATA API attributes.
+   * @param {Element} layer target
+   * @param {Element} slide target
+   * @returns {Spicr.layerData} values to create a tween object
+   */
+  function getSlideData(layer, slide) {
+    var attr = getAttributes$1(layer);
+    var translate = attr.translate;
+    var rotate = attr.rotate;
+    var origin = attr.origin;
+    var opacity = attr.opacity;
+    var easing = attr.easing;
+    var axis = attr.axis;
+    var scale = attr.scale;
+    var duration = attr.duration;
+    var delay = attr.delay;
+
+    scale = parseFloat(scale);
+    duration = +duration;
+    delay = +delay;
+
+    return {
+      axis: axis,
+      translate: translate ? processLayerData(slide, translate) : '',
+      rotate: rotate ? processLayerData(layer, rotate) : '',
+      origin: origin ? processLayerData(layer, origin, 1) : '',
+      scale: !Number.isNaN(scale) ? scale : '',
+      opacity: opacity !== 'false' ? 1 : 0,
+      duration: !Number.isNaN(duration) ? duration : defaultSpicrOptions.duration,
+      delay: !Number.isNaN(delay) ? delay : 0,
+      easing: easing || defaultSpicrOptions.easing,
+    };
+  }
+
+  /**
+   * TweenCarousel to work with KUTE transformFunctions component which returns
+   * an `Array` of Tween objects for layers of the current and next active item.
+   * @param {Element} elem
+   * @param {Element[]} items
+   * @param {number} active
+   * @param {number} next
+   * @param {string} direction animation direction
+   * @returns {KUTE.TweenBase[]} the `Array` of tween objects
+   */
+  function slidesTF(elem, items, active, next, direction, axis, gap) {
+    var carouselTweens = [];
+    var data = getSlideData(elem, items[active]);
+
+    var activeItem = items[active];
+    var translate = data.translate;
+    var origin = elem.getAttribute('data-transform-origin');
+    var easing = data.easing;
+
+    var duration = data.duration || defaultSpicrOptions.duration;
+    var from = {};
+    var to = {};
+
+    var activeTransform = getComputedStyle(activeItem).getPropertyValue('transform');
+    var matrix = new DOMMatrixReadOnly(activeTransform);
+    var activeTranslate = {
+      X: matrix.m41,
+      Y: matrix.m42,
+      Z: matrix.m43,
+    };
+    console.log('activeTranslate', activeTranslate);
+    if (translate) {
+      console.log('elem translate', translate);
+      from.transform = {};
+      to.transform = {};
+
+      from.transform.translate3d = [activeTranslate.X, activeTranslate.Y, activeTranslate.Z];
+      var translateX = 0;
+      var translateY = 0;
+      var translateZ = 0;
+
+      if ('x' in translate) {
+        if (axis === 'x') {
+          translate.x += gap;
+        }
+
+        translateX = direction ? -translate.x : translate.x;
+      }
+      if ('y' in translate) {
+        if (axis === 'y') {
+          translate.y += gap;
+        }
+
+        translateY = direction ? -translate.y : translate.y;
+      }
+      if ('z' in translate) {
+        if (axis === 'z') {
+          translate.z += gap;
+        }
+
+        translateZ = direction ? -translate.z : translate.z;
+      }
+
+      console.log('elem translate after direction', translate);
+      var tX = translateX + activeTranslate.X;
+      var tY = translateY + activeTranslate.Y;
+      var tZ = translateZ + activeTranslate.Z;
+      to.transform.translate3d = [tX, tY, tZ];
+      console.log('fromTo', from.transform, to.transform);
+      Array.from(items).forEach(function (x, i) {
+        carouselTweens.push(spicrConnect.fromTo(x, from, to, { easing: easing, duration: duration }));
+      });
+    }
+
+    return carouselTweens;
+  }
 
   /**
    * TweenCarousel to work with KUTE transformFunctions component which returns
@@ -1863,6 +2157,7 @@
   spicrConnect.carousel = carouselTF;
   spicrConnect.layer = layerTF;
   spicrConnect.reset = resetAllLayers;
+  spicrConnect.slides = slidesTF;
 
   /**
    * DATA API initialization callback

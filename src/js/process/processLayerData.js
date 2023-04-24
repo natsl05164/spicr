@@ -15,6 +15,10 @@ export default function processLayerData(elem, attributeString, isOrigin) {
     const pValue = prop[1];
     const offsetType = /y/i.test(pName) || /v/i.test(pValue) ? 'offsetHeight' : 'offsetWidth';
 
+    if (/x/i.test(pName)) {
+      console.log('processLayerData', pName, elem.offsetWidth, offsetType, (parseFloat(pValue) * elem[offsetType]) / 100, pValue);
+    }
+
     if (isOrigin && /%/.test(pValue) && !/z/i.test(pName)) {
       obj[pName] = pValue;
     } else {

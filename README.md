@@ -24,3 +24,13 @@ Check the [Wiki](https://github.com/thednp/spicr/wiki/Spicr-WIKI) for guidelines
 
 # License
 [MIT License](https://github.com/thednp/spicr/blob/master/LICENSE)
+
+
+
+# using dist demo /dist/index.html
+
+npx tailwindcss -i ./src/tailwind.css -o ./dist/css/tailwind.css --watch
+
+npx http-server ./dist -c-1
+
+in package.json change --environment to --watch, then npm run build-esm

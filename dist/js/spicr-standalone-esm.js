@@ -1,6 +1,6 @@
 /*!
 * Spicr v1.0.10 (http://thednp.github.io/spicr)
-* Copyright 2017-2021 © thednp
+* Copyright 2017-2023 © thednp
 * Licensed under MIT (https://github.com/thednp/spicr/blob/master/LICENSE)
 */
 /**
@@ -226,56 +226,31 @@ const Easing = {
     t -= 2; return 0.5 * (t * t * ((s + 1) * t + s) + 2);
   },
   /** @type {KUTE.easingFunction} */
-  easingElasticIn: (t0) => {
-    let s;
-    let k1 = 0.1;
-    const k2 = 0.4;
-    let t = t0;
+  easingElasticIn: (t) => {
     if (t === 0) return 0;
     if (t === 1) return 1;
-    if (!k1 || k1 < 1) {
-      k1 = 1; s = k2 / 4;
-    } else {
-      s = ((k2 * Math.asin(1 / k1)) / Math.PI) * 2;
-    }
-    t -= 1;
-    return -(k1 * (2 ** (10 * t)) * Math.sin(((t - s) * Math.PI * 2) / k2));
+
+    return -(2 ** (10 * (t - 1))) * Math.sin((t - 1.1) * 5 * Math.PI);
   },
   /** @type {KUTE.easingFunction} */
   easingElasticOut: (t) => {
-    let s;
-    let k1 = 0.1;
-    const k2 = 0.4;
     if (t === 0) return 0;
     if (t === 1) return 1;
-    if (!k1 || k1 < 1) {
-      k1 = 1;
-      s = k2 / 4;
-    } else {
-      s = ((k2 * Math.asin(1 / k1)) / Math.PI) * 2;
-    }
-    return k1 * (2 ** (-10 * t)) * Math.sin(((t - s) * Math.PI * 2) / k2) + 1;
+
+    return (2 ** (-10 * t)) * Math.sin((t - 0.1) * 5 * Math.PI) + 1;
   },
   /** @type {KUTE.easingFunction} */
   easingElasticInOut: (t0) => {
-    let t = t0;
-    let s;
-    let k1 = 0.1;
-    const k2 = 0.4;
-    if (t === 0) return 0;
-    if (t === 1) return 1;
-    if (!k1 || k1 < 1) {
-      k1 = 1; s = k2 / 4;
-    } else {
-      s = k2 * (Math.asin(1 / k1) / Math.PI) * 2;
-    }
-    t *= 2;
+    if (t0 === 0) return 0;
+    if (t0 === 1) return 1;
+
+    const t = t0 * 2;
+
     if (t < 1) {
-      return -0.5 * (k1 * (2 ** (10 * (t - 1)))
-      * Math.sin(((t - 1 - s) * Math.PI * 2) / k2));
+      return -0.5 * (2 ** (10 * (t - 1))) * Math.sin((t - 1.1) * 5 * Math.PI);
     }
-    t -= 1;
-    return k1 * (2 ** (-10 * t)) * Math.sin(((t - s) * Math.PI * 2) / k2) * 0.5 + 1;
+
+    return 0.5 * (2 ** (-10 * (t - 1))) * Math.sin((t - 1.1) * 5 * Math.PI) + 1;
   },
   /** @type {KUTE.easingFunction} */
   easingBounceIn: (t) => 1 - Easing.easingBounceOut(1 - t),
@@ -972,25 +947,53 @@ const BoxModelBase = {
 };
 
 /**
- * Utility to check if target is typeof Element
+ * Checks if an element is an `HTMLElement`.
+ *
+ * @param {any} element the target object
+ * @returns {boolean} the query result
+ */
+const isHTMLElement = (element) => typeof element === 'object' && element instanceof HTMLElement;
+
+/**
+ * Utility to check if target is typeof `HTMLElement`
  * or find one that matches a selector.
  *
- * @param {Element | string} selector the input selector or target element
- * @param {Element | null} parent optional Element to look into
- * @return {Element | null} the Element or result of the querySelector
+ * @param {HTMLElement | string} selector the input selector or target element
+ * @param {(ParentNode | HTMLElement)=} parent optional `HTMLElement` to look into
+ * @return {HTMLElement?} the `HTMLElement` or `querySelector` result
  */
-function queryElement(selector, parent) {
-  const lookUp = parent && parent instanceof Element ? parent : document;
-  return selector instanceof Element ? selector : lookUp.querySelector(selector);
+function querySelector(selector, parent) {
+  const lookUp = parent && isHTMLElement(parent) ? parent : document;
+  return typeof selector === 'object' ? selector : lookUp.querySelector(selector);
 }
 
-const mobileBrands = /iPhone|iPad|iPod|Android/i;
-const userAgentStr = 'userAgentData';
+/**
+ * Utility to check if target is typeof `HTMLElement`
+ * or find one that matches a selector.
+ *
+ * @deprecated
+ *
+ * @param {HTMLElement | string} selector the input selector or target element
+ * @param {(ParentNode | HTMLElement)=} parent optional `HTMLElement` to look into
+ * @return {HTMLElement?} the Element or `querySelector` result
+ */
+function queryElement(selector, parent) {
+  return querySelector(selector, parent);
+}
 
+/**
+ * A global namespace for `userAgentData` event.
+ * @type {string}
+ */
+const userAgentData = 'userAgentData';
+
+const mobileBrands = /iPhone|iPad|iPod|Android/i;
 let isMobileCheck = false;
 
-if (navigator[userAgentStr]) {
-  isMobileCheck = navigator[userAgentStr].brands.some((x) => mobileBrands.test(x.brand));
+// @ts-ignore
+if (navigator[userAgentData]) {
+  // @ts-ignore
+  isMobileCheck = navigator[userAgentData].brands.some((x) => mobileBrands.test(x.brand));
 } else {
   isMobileCheck = mobileBrands.test(navigator.userAgent);
 }
@@ -1014,16 +1017,59 @@ const supportTouch = 'ontouchstart' in window || 'msMaxTouchPoints' in navigator
 const mouseHoverEvents = ('onmouseleave' in document) ? ['mouseenter', 'mouseleave'] : ['mouseover', 'mouseout'];
 
 /**
- * A global namespace for 'addEventListener' string.
+ * A global namespace for `DOMContentLoaded` event.
  * @type {string}
  */
-const addEventListener = 'addEventListener';
+const DOMContentLoadedEvent = 'DOMContentLoaded';
 
 /**
- * A global namespace for 'removeEventListener' string.
- * @type {string}
+ * Add eventListener to an `HTMLElement` | `Document` target.
+ *
+ * @param {HTMLElement | Document} element event.target
+ * @param {string} eventName event.type
+ * @param {EventListener} handler callback
+ * @param {EventListenerOptions | boolean | undefined} options other event options
  */
-const removeEventListener = 'removeEventListener';
+function on(element, eventName, handler, options) {
+  const ops = options || false;
+  element.addEventListener(eventName, handler, ops);
+}
+
+/**
+ * Remove eventListener from an `HTMLElement` | `Document` target.
+ *
+ * @param {HTMLElement | Document} element event.target
+ * @param {string} eventName event.type
+ * @param {EventListener} handler callback
+ * @param {EventListenerOptions | boolean | undefined} options other event options
+ */
+function off(element, eventName, handler, options) {
+  const ops = options || false;
+  element.removeEventListener(eventName, handler, ops);
+}
+
+/**
+ * Add an `eventListener` to an `HTMLElement` | `Document` target
+ * and remove it once callback is called.
+ *
+ * @param {HTMLElement | Document} element event.target
+ * @param {string} eventName event.type
+ * @param {EventListener} handler callback
+ * @param {EventListenerOptions | boolean | undefined} options other event options
+ */
+function one(element, eventName, handler, options) {
+/**
+ * Wrap the handler for easy on -> off
+ * @param {Event} e the Event object
+ */
+  function handlerWrapper(e) {
+    if (e.target === element) {
+      handler.apply(element, [e]);
+      off(element, eventName, handlerWrapper, options);
+    }
+  }
+  on(element, eventName, handlerWrapper, options);
+}
 
 /**
  * A global namespace for passive events support.
@@ -1038,9 +1084,7 @@ const supportPassive = (() => {
         return result;
       },
     });
-    document[addEventListener]('DOMContentLoaded', function wrap() {
-      document[removeEventListener]('DOMContentLoaded', wrap, opts);
-    }, opts);
+    one(document, DOMContentLoadedEvent, () => {}, opts);
   } catch (e) {
     throw Error('Passive events are not supported');
   }
@@ -1058,7 +1102,7 @@ const passiveHandler = supportPassive ? { passive: true } : false;
 /**
  * The raw value or a given component option.
  *
- * @typedef {string | Element | Function | number | boolean | null} niceValue
+ * @typedef {string | HTMLElement | Function | number | boolean | null} niceValue
  */
 
 /**
@@ -1084,49 +1128,54 @@ function normalizeValue(value) {
     return null;
   }
 
-  // string / function / Element / object
+  // string / function / HTMLElement / object
   return value;
 }
 
 /**
+ * Shortcut for `Object.keys()` static method.
+ * @param  {Record<string, any>} obj a target object
+ * @returns {string[]}
+ */
+const ObjectKeys = (obj) => Object.keys(obj);
+
+/**
  * Utility to normalize component options
  *
- * @param {Element} element target
- * @param {object} defaultOps component default options
- * @param {object} inputOps component instance options
- * @param {string} ns component namespace
- * @return {object} normalized component options object
+ * @param {HTMLElement} element target
+ * @param {Record<string, any>} defaultOps component default options
+ * @param {Record<string, any>} inputOps component instance options
+ * @param {string=} ns component namespace
+ * @return {Record<string, any>} normalized component options object
  */
 function normalizeOptions(element, defaultOps, inputOps, ns) {
-  // @ts-ignore
   const data = { ...element.dataset };
+  /** @type {Record<string, any>} */
   const normalOps = {};
+  /** @type {Record<string, any>} */
   const dataOps = {};
 
-  Object.keys(data)
-    .forEach((k) => {
-      const key = k.includes(ns)
-        ? k.replace(ns, '').replace(/[A-Z]/, (match) => match.toLowerCase())
-        : k;
+  ObjectKeys(data).forEach((k) => {
+    const key = ns && k.includes(ns)
+      ? k.replace(ns, '').replace(/[A-Z]/, (match) => match.toLowerCase())
+      : k;
 
-      dataOps[key] = normalizeValue(data[k]);
-    });
+    dataOps[key] = normalizeValue(data[k]);
+  });
 
-  Object.keys(inputOps)
-    .forEach((k) => {
-      inputOps[k] = normalizeValue(inputOps[k]);
-    });
+  ObjectKeys(inputOps).forEach((k) => {
+    inputOps[k] = normalizeValue(inputOps[k]);
+  });
 
-  Object.keys(defaultOps)
-    .forEach((k) => {
-      if (k in inputOps) {
-        normalOps[k] = inputOps[k];
-      } else if (k in dataOps) {
-        normalOps[k] = dataOps[k];
-      } else {
-        normalOps[k] = defaultOps[k];
-      }
-    });
+  ObjectKeys(defaultOps).forEach((k) => {
+    if (k in inputOps) {
+      normalOps[k] = inputOps[k];
+    } else if (k in dataOps) {
+      normalOps[k] = dataOps[k];
+    } else {
+      normalOps[k] = defaultOps[k];
+    }
+  });
 
   return normalOps;
 }
@@ -1157,6 +1206,10 @@ function processLayerData(elem, attributeString, isOrigin) {
     const pValue = prop[1];
     const offsetType = /y/i.test(pName) || /v/i.test(pValue) ? 'offsetHeight' : 'offsetWidth';
 
+    if (/x/i.test(pName)) {
+      console.log('processLayerData', pName, elem.offsetWidth, offsetType, (parseFloat(pValue) * elem[offsetType]) / 100, pValue);
+    }
+
     if (isOrigin && /%/.test(pValue) && !/z/i.test(pName)) {
       obj[pName] = pValue;
     } else {
@@ -1176,6 +1229,13 @@ const defaultSpicrOptions = {
   interval: 5000,
   touch: true,
   pause: 'hover',
+  slides: {
+    itemsPerPage: 3,
+    totalRealItems: 5,
+    activeAlign: 'center',
+    gap: 8,
+    axis: 'x',
+  },
 };
 
 /**
@@ -1290,6 +1350,7 @@ function Spicr(el, ops) {
   // options
   const pauseOption = options.pause; // false / hover
   const touchOption = options.touch; // boolean
+  const { gap, axis } = options.slides;
 
   const intervalOption = options.interval; // integer / false
 
@@ -1309,12 +1370,19 @@ function Spicr(el, ops) {
   let timer = null;
   let slideDirection = null;
   let index = 0;
+
   let isAnimating = 0;
 
   // spicr type
-  const isSlider = element.classList.contains('spicr-slider');
+  const isSlides = element.classList.contains('spicr-slides');
+  const isSlider = !isSlides && element.classList.contains('spicr-slider');
   const isCarousel = element.classList.contains('spicr-carousel');
 
+  if (isSlides) {
+    index = (options.slides.itemsPerPage + getTtlItemsFrActive()) + 1 - 1;
+    // itemsPerPage = 3, if center getTtlItemsFrActive = 1 , so 4 items from active. it shud be the 5th item that is Active hence + 1. but index start from 0 so - 1
+    console.log('init index', index);
+  }
   // event handlers
   function pauseHandler() {
     if (!element.classList.contains('paused')) {
@@ -1442,13 +1510,78 @@ function Spicr(el, ops) {
       if (isCarousel) {
         element.style.height = '';
       }
-      spicrConnect.reset(element);
+      if (isSlides) {
+        console.log('options.slides', options.slides);
+        const ttlItemsFrActive = getTtlItemsFrActive();
+        // if (options.slides.activeAlign === 'center') {
+        //   ttlItemsFrActive = (options.slides.itemsPerPage - 1) / 2; // 3 -1 /2 = 1
+        // } else if (options.slides.activeAlign === 'right') {
+        //   ttlItemsFrActive = options.slides.itemsPerPage;
+        // }
+
+        console.log('nextItem (active 1)', nextItem);
+        console.log('ttlItemsFrActive', ttlItemsFrActive);
+        const indexOfFirstItemOnPg = nextItem - ttlItemsFrActive;
+        // if nextItem is  3, 3- 1 , means index 2 is first Item on the page
+        console.log('indexOfFirstItemOnPg', indexOfFirstItemOnPg);
+        const maxIdxLClones = options.slides.itemsPerPage - 1;
+        // start from 0 ,  3 - 1 =2 , the 3rd item , index is alwys - 1
+        console.log('maxIdxLClones', maxIdxLClones);
+        const minIdxRClones = (options.slides.itemsPerPage + options.slides.totalRealItems + 1) - 1;
+        // start from 0 ,  (3 + 5 + 1 ) the 9th item ,  index is alwys - 1
+        console.log('minIdxRClones', minIdxRClones);
+        if (maxIdxLClones >= indexOfFirstItemOnPg || indexOfFirstItemOnPg >= minIdxRClones) {
+          // so the First Item on the Pg is a cloned item, move it to a real Item
+          console.log('chkIsInCloneRange', indexOfFirstItemOnPg, maxIdxLClones >= indexOfFirstItemOnPg >= minIdxRClones);
+          const isOnRight = indexOfFirstItemOnPg >= minIdxRClones;
+          console.log('isOnRight', isOnRight);
+          let moveByTtlItems = options.slides.totalRealItems;
+          moveByTtlItems = isOnRight ? -moveByTtlItems : moveByTtlItems;
+
+          console.log('moveByTtlItems', moveByTtlItems);
+          const realNextItem = nextItem + moveByTtlItems;
+          index = realNextItem;
+          console.log('realNextItem', realNextItem);
+          const realFirstItemPg = indexOfFirstItemOnPg + moveByTtlItems;
+          console.log('realFirstItemPg', realFirstItemPg);
+          let itemLength = 0;
+          if (axis === 'x') { // slides shud have the same height / width
+            itemLength = slides[0].offsetWidth;
+          } else {
+            itemLength = slides[0].offsetHeight;
+          }
+
+          console.log('itemLength', itemLength);
+
+          const pos = ((realFirstItemPg * itemLength) + (gap * realFirstItemPg)) * -1;
+
+          console.log('pos', gap, pos);
+          Array.from(slides).forEach((slide, index) => {
+            slide.style.transform = `translate${axis.toUpperCase()}(${pos}px)`;
+          });
+          slides[nextItem].classList.remove('active');
+          slides[realNextItem].classList.add('active');
+        }
+      } else {
+        spicrConnect.reset(element);
+      }
+
       isAnimating = false;
       tws = [];
       if (intervalOption && !element.classList.contains('paused')) {
         self.cycle();
       }
     }, 0);
+  }
+
+  function getTtlItemsFrActive() {
+    let ttlItemsFrActive = 0;
+    if (options.slides.activeAlign === 'center') {
+      ttlItemsFrActive = (options.slides.itemsPerPage - 1) / 2; // 3 -1 /2 = 1
+    } else if (options.slides.activeAlign === 'right') {
+      ttlItemsFrActive = options.slides.itemsPerPage;
+    }
+    return ttlItemsFrActive;
   }
 
   // public methods
@@ -1459,6 +1592,7 @@ function Spicr(el, ops) {
     const activeIndex = element.getElementsByClassName('item active')[0];
     return Array.from(slides).indexOf(activeIndex);
   };
+
   /**
    * Cycles through items automatically in a pre-configured time interval.
    */
@@ -1474,9 +1608,10 @@ function Spicr(el, ops) {
    * @param {number} nextIdx the index of the next slide.
    */
   this.slideTo = (nextIdx) => {
+    console.log('slideTonextIdx', nextIdx);
     let nextActive = nextIdx;
     const activeIndex = this.getActiveIndex();
-
+    console.log(activeIndex, nextActive, isAnimating);
     if (activeIndex === nextActive || isAnimating) return;
 
     clearInterval(timer);
@@ -1523,7 +1658,35 @@ function Spicr(el, ops) {
         }
 
         if (pages) setActivePage(pages[nextActive]);
+
       // do carousel work
+      } else if (isSlides) {
+        beforeTween(activeIndex, nextActive); // always before creating tween objects
+
+        tws = spicrConnect.slides(element, slides, activeIndex, nextActive, slideDirection, axis, gap);
+
+        // temp
+        // const animateActiveLayers = activeIndex !== -1
+        //   ? animateSliderLayers(slides, activeIndex, nextActive)
+        //   : animateSliderLayers(slides, activeIndex);
+
+        // const animateNextLayers = activeIndex !== -1 && animateSliderLayers(slides, nextActive);
+
+        // if (activeIndex === -1) {
+        //   if (animateActiveLayers.length) tws = tws.concat(animateActiveLayers);
+        // } else {
+        //   if (animateActiveLayers.length) tws = tws.concat(animateActiveLayers);
+        //   if (animateNextLayers.length) tws = tws.concat(animateNextLayers);
+        // }
+
+        if (tws.length) {
+          tws.reduce((x, y) => (x._duration + x._delay > y._duration + y._delay ? x : y))
+            ._onComplete = () => afterTween(activeIndex, nextActive);
+
+          tws.forEach((x) => x.start());
+        } else {
+          afterTween(activeIndex, nextActive);
+        }
       } else if (isCarousel) {
         beforeTween(activeIndex, nextActive); // always before creating tween objects
 
@@ -1605,6 +1768,130 @@ const K = {
 };
 
 Object.assign(Spicr, K);
+
+/**
+ * Returns an object with attribute values specific to Spicr layer.
+ * @param {Element} elem target
+ * @returns {Object.<string, (number | string)>}
+ */
+function getAttributes$1(elem) {
+  const obj = {};
+  const attr = ['translate', 'rotate', 'scale',
+    'transform-origin', 'opacity', 'duration', 'delay', 'easing', 'axis'];
+
+  attr.forEach((a) => {
+    const prop = a === 'transform-origin' ? 'origin' : a;
+    obj[prop] = elem.getAttribute(`data-${a}`);
+  });
+  return obj;
+}
+
+/**
+ * Returns layer animation settings for DATA API attributes.
+ * @param {Element} layer target
+ * @param {Element} slide target
+ * @returns {Spicr.layerData} values to create a tween object
+ */
+function getSlideData(layer, slide) {
+  const attr = getAttributes$1(layer);
+  const {
+    translate, rotate, origin, opacity, easing, axis,
+  } = attr;
+  let { scale, duration, delay } = attr;
+
+  scale = parseFloat(scale);
+  duration = +duration;
+  delay = +delay;
+
+  return {
+    axis,
+    translate: translate ? processLayerData(slide, translate) : '',
+    rotate: rotate ? processLayerData(layer, rotate) : '',
+    origin: origin ? processLayerData(layer, origin, 1) : '',
+    scale: !Number.isNaN(scale) ? scale : '',
+    opacity: opacity !== 'false' ? 1 : 0,
+    duration: !Number.isNaN(duration) ? duration : defaultSpicrOptions.duration,
+    delay: !Number.isNaN(delay) ? delay : 0,
+    easing: easing || defaultSpicrOptions.easing,
+  };
+}
+
+/**
+ * TweenCarousel to work with KUTE transformFunctions component which returns
+ * an `Array` of Tween objects for layers of the current and next active item.
+ * @param {Element} elem
+ * @param {Element[]} items
+ * @param {number} active
+ * @param {number} next
+ * @param {string} direction animation direction
+ * @returns {KUTE.TweenBase[]} the `Array` of tween objects
+ */
+function slidesTF(elem, items, active, next, direction, axis, gap) {
+  const carouselTweens = [];
+  const data = getSlideData(elem, items[active]);
+
+  const activeItem = items[active];
+  const { translate } = data;
+  const origin = elem.getAttribute('data-transform-origin');
+  const { easing } = data;
+
+  const duration = data.duration || defaultSpicrOptions.duration;
+  const from = {};
+  const to = {};
+
+  const activeTransform = getComputedStyle(activeItem).getPropertyValue('transform');
+  const matrix = new DOMMatrixReadOnly(activeTransform);
+  const activeTranslate = {
+    X: matrix.m41,
+    Y: matrix.m42,
+    Z: matrix.m43,
+  };
+  console.log('activeTranslate', activeTranslate);
+  if (translate) {
+    console.log('elem translate', translate);
+    from.transform = {};
+    to.transform = {};
+
+    from.transform.translate3d = [activeTranslate.X, activeTranslate.Y, activeTranslate.Z];
+    let translateX = 0;
+    let translateY = 0;
+    let translateZ = 0;
+
+    if ('x' in translate) {
+      if (axis === 'x') {
+        translate.x += gap;
+      }
+
+      translateX = direction ? -translate.x : translate.x;
+    }
+    if ('y' in translate) {
+      if (axis === 'y') {
+        translate.y += gap;
+      }
+
+      translateY = direction ? -translate.y : translate.y;
+    }
+    if ('z' in translate) {
+      if (axis === 'z') {
+        translate.z += gap;
+      }
+
+      translateZ = direction ? -translate.z : translate.z;
+    }
+
+    console.log('elem translate after direction', translate);
+    const tX = translateX + activeTranslate.X;
+    const tY = translateY + activeTranslate.Y;
+    const tZ = translateZ + activeTranslate.Z;
+    to.transform.translate3d = [tX, tY, tZ];
+    console.log('fromTo', from.transform, to.transform);
+    Array.from(items).forEach((x, i) => {
+      carouselTweens.push(spicrConnect.fromTo(x, from, to, { easing, duration }));
+    });
+  }
+
+  return carouselTweens;
+}
 
 /**
  * TweenCarousel to work with KUTE transformFunctions component which returns
@@ -1854,6 +2141,7 @@ function resetAllLayers(element) {
 spicrConnect.carousel = carouselTF;
 spicrConnect.layer = layerTF;
 spicrConnect.reset = resetAllLayers;
+spicrConnect.slides = slidesTF;
 
 /**
  * DATA API initialization callback
