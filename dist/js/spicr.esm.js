@@ -618,6 +618,8 @@ function Spicr(el, ops) {
           });
           slides[nextItem].classList.remove('active');
           slides[realNextItem].classList.add('active');
+
+          nextItem = realNextItem;
         }
       } else {
         spicrConnect.reset(element);
@@ -625,6 +627,15 @@ function Spicr(el, ops) {
 
       isAnimating = false;
       tws = [];
+
+      /// create & dispatch custom event for afterTween
+      const afterTweenEvt = new CustomEvent('afterTween', {
+        detail: {
+          newActive: nextItem,
+        },
+      });
+      element.dispatchEvent(afterTweenEvt);
+
       if (intervalOption && !element.classList.contains('paused')) {
         self.cycle();
       }

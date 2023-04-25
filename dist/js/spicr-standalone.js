@@ -1570,6 +1570,8 @@
             });
             slides[nextItem].classList.remove('active');
             slides[realNextItem].classList.add('active');
+
+            nextItem = realNextItem;
           }
         } else {
           spicrConnect.reset(element);
@@ -1577,6 +1579,15 @@
 
         isAnimating = false;
         tws = [];
+
+        /// create & dispatch custom event for afterTween
+        var afterTweenEvt = new CustomEvent('afterTween', {
+          detail: {
+            newActive: nextItem,
+          },
+        });
+        element.dispatchEvent(afterTweenEvt);
+
         if (intervalOption && !element.classList.contains('paused')) {
           self.cycle();
         }
