@@ -1206,10 +1206,6 @@ function processLayerData(elem, attributeString, isOrigin) {
     const pValue = prop[1];
     const offsetType = /y/i.test(pName) || /v/i.test(pValue) ? 'offsetHeight' : 'offsetWidth';
 
-    if (/x/i.test(pName)) {
-      console.log('processLayerData', pName, elem.offsetWidth, offsetType, (parseFloat(pValue) * elem[offsetType]) / 100, pValue);
-    }
-
     if (isOrigin && /%/.test(pValue) && !/z/i.test(pName)) {
       obj[pName] = pValue;
     } else {
@@ -1513,7 +1509,7 @@ function Spicr(el, ops) {
       }
       if (isSlides) {
         console.log('options.slides', options.slides);
-        if (options.slides.autoloop) {
+        if (autoloop) {
           const ttlItemsFrActive = getTtlItemsFrActive();
           // if (options.slides.activeAlign === 'center') {
           //   ttlItemsFrActive = (options.slides.itemsPerPage - 1) / 2; // 3 -1 /2 = 1
