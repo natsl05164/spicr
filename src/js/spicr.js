@@ -201,7 +201,7 @@ export default function Spicr(el, ops) {
       }
       if (isSlides) {
         console.log('options.slides', options.slides);
-        if (options.slides.autoloop) {
+        if (autoloop) {
           const ttlItemsFrActive = getTtlItemsFrActive();
           // if (options.slides.activeAlign === 'center') {
           //   ttlItemsFrActive = (options.slides.itemsPerPage - 1) / 2; // 3 -1 /2 = 1
