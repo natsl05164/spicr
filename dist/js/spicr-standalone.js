@@ -1236,6 +1236,7 @@
       activeAlign: 'center',
       gap: 8,
       axis: 'x',
+      autoloop:true,
     },
   };
 
@@ -1521,57 +1522,59 @@
         }
         if (isSlides) {
           console.log('options.slides', options.slides);
-          var ttlItemsFrActive = getTtlItemsFrActive();
-          // if (options.slides.activeAlign === 'center') {
-          //   ttlItemsFrActive = (options.slides.itemsPerPage - 1) / 2; // 3 -1 /2 = 1
-          // } else if (options.slides.activeAlign === 'right') {
-          //   ttlItemsFrActive = options.slides.itemsPerPage;
-          // }
+          if (options.slides.autoloop) {
+            var ttlItemsFrActive = getTtlItemsFrActive();
+            // if (options.slides.activeAlign === 'center') {
+            //   ttlItemsFrActive = (options.slides.itemsPerPage - 1) / 2; // 3 -1 /2 = 1
+            // } else if (options.slides.activeAlign === 'right') {
+            //   ttlItemsFrActive = options.slides.itemsPerPage;
+            // }
 
-          console.log('nextItem (active 1)', nextItem);
-          console.log('ttlItemsFrActive', ttlItemsFrActive);
-          var indexOfFirstItemOnPg = nextItem - ttlItemsFrActive;
-          // if nextItem is  3, 3- 1 , means index 2 is first Item on the page
-          console.log('indexOfFirstItemOnPg', indexOfFirstItemOnPg);
-          var maxIdxLClones = options.slides.itemsPerPage - 1;
-          // start from 0 ,  3 - 1 =2 , the 3rd item , index is alwys - 1
-          console.log('maxIdxLClones', maxIdxLClones);
-          var minIdxRClones = (options.slides.itemsPerPage + options.slides.totalRealItems + 1) - 1;
-          // start from 0 ,  (3 + 5 + 1 ) the 9th item ,  index is alwys - 1
-          console.log('minIdxRClones', minIdxRClones);
-          if (maxIdxLClones >= indexOfFirstItemOnPg || indexOfFirstItemOnPg >= minIdxRClones) {
-            // so the First Item on the Pg is a cloned item, move it to a real Item
-            console.log('chkIsInCloneRange', indexOfFirstItemOnPg, maxIdxLClones >= indexOfFirstItemOnPg >= minIdxRClones);
-            var isOnRight = indexOfFirstItemOnPg >= minIdxRClones;
-            console.log('isOnRight', isOnRight);
-            var moveByTtlItems = options.slides.totalRealItems;
-            moveByTtlItems = isOnRight ? -moveByTtlItems : moveByTtlItems;
+            console.log('nextItem (active 1)', nextItem);
+            console.log('ttlItemsFrActive', ttlItemsFrActive);
+            var indexOfFirstItemOnPg = nextItem - ttlItemsFrActive;
+            // if nextItem is  3, 3- 1 , means index 2 is first Item on the page
+            console.log('indexOfFirstItemOnPg', indexOfFirstItemOnPg);
+            var maxIdxLClones = options.slides.itemsPerPage - 1;
+            // start from 0 ,  3 - 1 =2 , the 3rd item , index is alwys - 1
+            console.log('maxIdxLClones', maxIdxLClones);
+            var minIdxRClones = (options.slides.itemsPerPage + options.slides.totalRealItems + 1) - 1;
+            // start from 0 ,  (3 + 5 + 1 ) the 9th item ,  index is alwys - 1
+            console.log('minIdxRClones', minIdxRClones);
+            if (maxIdxLClones >= indexOfFirstItemOnPg || indexOfFirstItemOnPg >= minIdxRClones) {
+              // so the First Item on the Pg is a cloned item, move it to a real Item
+              console.log('chkIsInCloneRange', indexOfFirstItemOnPg, maxIdxLClones >= indexOfFirstItemOnPg >= minIdxRClones);
+              var isOnRight = indexOfFirstItemOnPg >= minIdxRClones;
+              console.log('isOnRight', isOnRight);
+              var moveByTtlItems = options.slides.totalRealItems;
+              moveByTtlItems = isOnRight ? -moveByTtlItems : moveByTtlItems;
 
-            console.log('moveByTtlItems', moveByTtlItems);
-            var realNextItem = nextItem + moveByTtlItems;
-            index = realNextItem;
-            console.log('realNextItem', realNextItem);
-            var realFirstItemPg = indexOfFirstItemOnPg + moveByTtlItems;
-            console.log('realFirstItemPg', realFirstItemPg);
-            var itemLength = 0;
-            if (axis === 'x') { // slides shud have the same height / width
-              itemLength = slides[0].offsetWidth;
-            } else {
-              itemLength = slides[0].offsetHeight;
+              console.log('moveByTtlItems', moveByTtlItems);
+              var realNextItem = nextItem + moveByTtlItems;
+              index = realNextItem;
+              console.log('realNextItem', realNextItem);
+              var realFirstItemPg = indexOfFirstItemOnPg + moveByTtlItems;
+              console.log('realFirstItemPg', realFirstItemPg);
+              var itemLength = 0;
+              if (axis === 'x') { // slides shud have the same height / width
+                itemLength = slides[0].offsetWidth;
+              } else {
+                itemLength = slides[0].offsetHeight;
+              }
+
+              console.log('itemLength', itemLength);
+
+              var pos = ((realFirstItemPg * itemLength) + (gap * realFirstItemPg)) * -1;
+
+              console.log('pos', gap, pos);
+              Array.from(slides).forEach(function (slide, index) {
+                slide.style.transform = "translate" + (axis.toUpperCase()) + "(" + pos + "px)";
+              });
+              slides[nextItem].classList.remove('active');
+              slides[realNextItem].classList.add('active');
+
+              nextItem = realNextItem;
             }
-
-            console.log('itemLength', itemLength);
-
-            var pos = ((realFirstItemPg * itemLength) + (gap * realFirstItemPg)) * -1;
-
-            console.log('pos', gap, pos);
-            Array.from(slides).forEach(function (slide, index) {
-              slide.style.transform = "translate" + (axis.toUpperCase()) + "(" + pos + "px)";
-            });
-            slides[nextItem].classList.remove('active');
-            slides[realNextItem].classList.add('active');
-
-            nextItem = realNextItem;
           }
         } else {
           spicrConnect.reset(element);

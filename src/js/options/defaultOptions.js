@@ -11,6 +11,7 @@ const defaultSpicrOptions = {
     activeAlign: 'center',
     gap: 8,
     axis: 'x',
+    autoloop:true,
   },
 };
 
