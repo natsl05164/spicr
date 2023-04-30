@@ -408,7 +408,7 @@ function Spicr(el, ops) {
   // options
   const pauseOption = options.pause; // false / hover
   const touchOption = options.touch; // boolean
-  const { gap, axis } = options.slides;
+  const { gap, axis, autoloop } = options.slides;
 
   const intervalOption = options.interval; // integer / false
 
@@ -437,7 +437,7 @@ function Spicr(el, ops) {
   const isCarousel = element.classList.contains('spicr-carousel');
 
   if (isSlides) {
-    index = (options.slides.itemsPerPage + getTtlItemsFrActive()) + 1 - 1;
+    index = ((autoloop ? options.slides.itemsPerPage : 0) + getTtlItemsFrActive()) + 1 - 1;
     // itemsPerPage = 3, if center getTtlItemsFrActive = 1 , so 4 items from active. it shud be the 5th item that is Active hence + 1. but index start from 0 so - 1
     console.log('init index', index);
   }
@@ -702,6 +702,7 @@ function Spicr(el, ops) {
         nextActive = 0;
       }
 
+      console.log(' find the right next index', activeIndex, nextActive, isAnimating);
       // do slider work
       if (isSlider) {
         beforeTween(activeIndex, nextActive); // always before creating tween objects
